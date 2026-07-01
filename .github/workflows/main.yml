@@ -1,0 +1,129 @@
+name: Grade w01_linux_essential
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Setup: rebuild treasure/ so verification can run ──
+      - name: Initialize lab environment
+        run: bash init.sh
+
+      # ── Step 1: results.log exists ────────────────────────
+      - name: Check results.log exists
+        run: |
+          [ -f results/results.log ] \
+            && echo "✅ results.log found" \
+            || { echo "❌ results.log missing — run bash check.sh"; exit 1; }
+
+      # ── Step 2: all 12 tasks present ──────────────────────
+      - name: Validate completeness
+        run: |
+          REQUIRED=(task1 task2 task3 task4 task5 task6 task7 task8 task9 task10 task11 task12)
+          MISSING=0
+          for t in "${REQUIRED[@]}"; do
+            grep -q "^${t}:" results/results.log \
+              && echo "  ✅ $t present" \
+              || { echo "  ❌ $t missing"; MISSING=$((MISSING+1)); }
+          done
+          [ $MISSING -eq 0 ] || { echo "❌ $MISSING task(s) missing"; exit 1; }
+
+      # ── Step 3: format valid ──────────────────────────────
+      - name: Validate format
+        run: |
+          INVALID=0
+          while IFS= read -r line; do
+            echo "$line" | grep -qE '^task[0-9]+:(PASS|FAIL)$' \
+              || { echo "❌ Bad line: '$line'"; INVALID=$((INVALID+1)); }
+          done < results/results.log
+          [ $INVALID -eq 0 ] || { echo "❌ Invalid format in results.log"; exit 1; }
+          echo "✅ Format valid"
+
+      # ── Step 4: re-verify task 4 (head -n 5) ─────────────
+      - name: Re-verify task4 (head -n 5)
+        run: |
+          [ -f results/task4.txt ] || { echo "❌ task4.txt missing"; exit 1; }
+          expected=$(head -n 5 treasure/data.txt)
+          actual=$(cat results/task4.txt)
+          [ "$actual" = "$expected" ] \
+            && echo "✅ task4: head -n 5 output correct" \
+            || { echo "❌ task4: output doesn't match head -n 5 treasure/data.txt"; exit 1; }
+
+      # ── Step 5: re-verify task 7 (line count) ────────────
+      - name: Re-verify task7 (wc -l)
+        run: |
+          [ -f results/task7.txt ] || { echo "❌ task7.txt missing"; exit 1; }
+          val=$(tr -d '[:space:]' < results/task7.txt)
+          [ "$val" = "20" ] \
+            && echo "✅ task7: line count = 20" \
+            || { echo "❌ task7: expected 20, got '$val'"; exit 1; }
+
+      # ── Step 6: re-verify task 8 (no duplicates) ─────────
+      - name: Re-verify task8 (sort | uniq)
+        run: |
+          [ -f results/task8.txt ] || { echo "❌ task8.txt missing"; exit 1; }
+          dupes=$(sort results/task8.txt | uniq -d | wc -l | tr -d '[:space:]')
+          [ "$dupes" = "0" ] \
+            && echo "✅ task8: no duplicates" \
+            || { echo "❌ task8: duplicates still present"; exit 1; }
+
+      # ── Step 7: re-verify task 9 (summary structure) ─────
+      - name: Re-verify task9 (summary file)
+        run: |
+          [ -f results/task9.txt ] || { echo "❌ task9.txt missing"; exit 1; }
+          grep -q "=== Lab Summary ===" results/task9.txt || { echo "❌ task9: missing header"; exit 1; }
+          grep -q "^User:" results/task9.txt || { echo "❌ task9: missing User: line"; exit 1; }
+          grep -q "^Date:" results/task9.txt || { echo "❌ task9: missing Date: line"; exit 1; }
+          grep -q "^Lines in data.txt:" results/task9.txt || { echo "❌ task9: missing line count line"; exit 1; }
+          echo "✅ task9: all 4 sections present"
+
+      # ── Step 8: re-verify task 12 (log analysis) ─────────
+      - name: Re-verify task12 (log analysis)
+        run: |
+          LOG="treasure/logs/access.log"
+          FAIL=0
+
+          # 12a: total lines
+          expected=$(wc -l < "$LOG" | tr -d '[:space:]')
+          val=$(tr -d '[:space:]' < results/task12a.txt 2>/dev/null || echo "")
+          [ "$val" = "$expected" ] \
+            && echo "✅ 12a: total requests = $expected" \
+            || { echo "❌ 12a: expected $expected, got '$val'"; FAIL=$((FAIL+1)); }
+
+          # 12b: unique IPs
+          expected=$(awk '{print $1}' "$LOG" | sort | uniq | wc -l | tr -d '[:space:]')
+          val=$(tr -d '[:space:]' < results/task12b.txt 2>/dev/null || echo "")
+          [ "$val" = "$expected" ] \
+            && echo "✅ 12b: unique IPs = $expected" \
+            || { echo "❌ 12b: expected $expected, got '$val'"; FAIL=$((FAIL+1)); }
+
+          # 12c: top IP
+          grep -q "192.168.1.10" results/task12c.txt 2>/dev/null \
+            && echo "✅ 12c: top IP correct" \
+            || { echo "❌ 12c: expected 192.168.1.10"; FAIL=$((FAIL+1)); }
+
+          # 12d: 404 count
+          expected=$(grep -c " 404$" "$LOG" | tr -d '[:space:]')
+          val=$(tr -d '[:space:]' < results/task12d.txt 2>/dev/null || echo "")
+          [ "$val" = "$expected" ] \
+            && echo "✅ 12d: 404 count = $expected" \
+            || { echo "❌ 12d: expected $expected, got '$val'"; FAIL=$((FAIL+1)); }
+
+          [ $FAIL -eq 0 ] || { echo "❌ task12: $FAIL sub-tasks wrong"; exit 1; }
+
+      # ── Step 9: final score report ────────────────────────
+      - name: Final score report
+        run: |
+          PASS=$(grep -c ":PASS" results/results.log || true)
+          echo "=============================="
+          echo "  w01_linux_essential — Final Score: $PASS / 12"
+          echo "=============================="
+          while IFS=: read -r task status; do
+            [ "$status" = "PASS" ] && echo "  ✅ $task" || echo "  ❌ $task"
+          done < results/results.log
