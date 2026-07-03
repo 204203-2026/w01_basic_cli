@@ -1,4 +1,4 @@
-# w01_linux_essential — Linux Essentials for Developers
+# w01_basic_cli — Linux Essentials for Developers
 
 **Course:** 204203 Computer Science Technology  
 **Week:** 1  
@@ -54,14 +54,14 @@ You must create your own copy — do not work directly in the template.
 2. Click the green **Use this template** button at the top of this page
 3. Click **Create a new repository**
 4. Under **Owner** — select **204203-2026** (not your personal account)
-5. Set the repository name to `w01_linux_essential-STUDENTID`  
+5. Set the repository name to `w01_basic_cli-STUDENTID`  
    Replace `STUDENTID` with your 9-digit student ID  
-   Example: `w01_linux_essential-640123456`
+   Example: `w01_basic_cli-640123456`
 6. Set visibility to **Private**
 7. Click **Create repository**
 
 Your repo will be at:  
-`https://github.com/204203-2026/w01_linux_essential-640123456`
+`https://github.com/204203-2026/w01_basic_cli-640123456`
 
 > ⚠️ Owner must be **204203-2026**, not your personal account.  
 > Wrong owner = instructor cannot see your submission = no grade.
@@ -114,8 +114,8 @@ gh auth status
 Clone the **template repository** into a folder named after your own submission repo. Replace `6805xxxxx` with your student ID:
 
 ```bash
-git clone https://github.com/204203-2026/w01_linux_essential.git w01_linux_essential-6805xxxxx
-cd w01_linux_essential-6805xxxxx
+git clone https://github.com/204203-2026/w01_basic_cli.git w01_basic_cli-6805xxxxx
+cd w01_basic_cli-6805xxxxx
 ```
 
 ---
@@ -139,7 +139,7 @@ This folder is now a plain directory with no Git history — you are about to ma
 Check whether your submission repo already exists:
 
 ```bash
-gh repo view 204203-2026/w01_linux_essential-6805xxxxx
+gh repo view 204203-2026/w01_basic_cli-6805xxxxx
 ```
 
 If you see repository info, it already exists — continue to B5.
@@ -147,7 +147,7 @@ If you see repository info, it already exists — continue to B5.
 If you see `repository not found`, create it:
 
 ```bash
-gh repo create 204203-2026/w01_linux_essential-6805xxxxx --private
+gh repo create 204203-2026/w01_basic_cli-6805xxxxx --private
 ```
 
 > ⚠️ Owner must be **204203-2026**, not your personal account.  
@@ -160,7 +160,7 @@ gh repo create 204203-2026/w01_linux_essential-6805xxxxx --private
 Point this local folder at your new GitHub repository:
 
 ```bash
-git remote add origin https://github.com/204203-2026/w01_linux_essential-6805xxxxx.git
+git remote add origin https://github.com/204203-2026/w01_basic_cli-6805xxxxx.git
 git remote -v   # confirm origin points at YOUR repo, not the template
 ```
 
@@ -174,7 +174,7 @@ Commit and push the starting files:
 
 ```bash
 git add .
-git commit -m "Start w01_linux_essential"
+git commit -m "Start w01_basic_cli"
 git push -u origin main
 ```
 
@@ -231,7 +231,7 @@ GitHub Actions then runs automatically — check the **Actions tab** in your rep
 ## File Structure
 
 ```
-w01_linux_essential/
+w01_basic_cli/
 ├── README.md              ← you are here
 ├── TASKS.md               ← lab instructions (follow this)
 ├── init.sh                ← run once to set up treasure/
